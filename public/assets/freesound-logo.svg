@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 720" role="img" aria-labelledby="title desc">
+  <title id="title">FreeSound logo</title>
+  <desc id="desc">A red and white handmade FreeSound mark with simple doodle-style music graphics.</desc>
+  <rect width="600" height="720" fill="#f01818"/>
+  <rect x="600" width="600" height="720" fill="#fff"/>
+  <g fill="#fff" font-family="Georgia, serif" font-weight="700" font-size="156" letter-spacing="6">
+    <text x="70" y="286">free</text>
+    <text x="70" y="560">sound</text>
+  </g>
+  <g fill="none" stroke="#f01818" stroke-width="28" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M725 205c45-70 109-77 160-32 18 16 23 43 8 62-27 34-89 27-168-30Z"/>
+    <path d="M882 235c70-42 134-37 177 12 13 16 11 42-8 54-39 24-95-7-169-66Z"/>
+    <path d="M800 240c18 30 22 60 13 89-11 35-48 28-62 1-21-42-4-77 49-90Z"/>
+    <path d="M918 315c37 22 57 55 50 92-7 41-57 69-83 35-32-42-22-88 33-127Z"/>
+    <path d="M725 228c-50 13-88 47-91 96-3 46 57 61 90 23 24-27 21-75 1-119Z"/>
+    <path d="M726 476c82-76 223-91 288-39 49 39 30 167-55 214-97 54-243 12-280-77-16-38 3-72 47-98Z"/>
+    <path d="M768 535c24-39 70-30 73 6 3 37-45 64-73 27-8-11-8-22 0-33Z"/>
+    <path d="M911 544c30-21 65-33 99-36-17 54-48 91-90 111-7-28-10-52-9-75Z"/>
+  </g>
+</svg>
