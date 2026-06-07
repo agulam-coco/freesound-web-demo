@@ -1413,7 +1413,16 @@ img {
   height: auto;
   /* Subtle soft shadow so the figure pops off the background */
   filter: drop-shadow(0 32px 56px rgba(80, 50, 30, 0.22)) drop-shadow(0 6px 14px rgba(80, 50, 30, 0.14));
+  pointer-events: none;
   width: 100%;
+}
+
+.managers-video-frame video::-webkit-media-controls {
+  display: none !important;
+}
+
+.managers-video-frame video::-webkit-media-controls-start-playback-button {
+  display: none !important;
 }
 
 .managers-meta {

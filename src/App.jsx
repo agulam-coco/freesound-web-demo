@@ -706,6 +706,7 @@ function AboutPage({ navigate }) {
 function ManagersShowcase() {
   const [activeIndex, setActiveIndex] = useState(0);
   const [fading, setFading] = useState(false);
+  const [isInView, setIsInView] = useState(false);
   const videoRef = useRef(null);
   const sectionRef = useRef(null);
   const fadeTimer = useRef(null);
@@ -719,53 +720,68 @@ function ManagersShowcase() {
     }, 180);
   }, []);
 
-  const playCurrentVideo = useCallback(() => {
+  const attemptPlay = useCallback(() => {
     const video = videoRef.current;
-    if (!video) return;
+    if (!video || !isInView) return;
     video.muted = true;
     video.defaultMuted = true;
+    video.setAttribute("muted", "");
     const playPromise = video.play();
     if (playPromise !== undefined) {
       playPromise.catch(() => {});
     }
+  }, [isInView]);
+
+  const bindVideoRef = useCallback((node) => {
+    videoRef.current = node;
+    if (!node) return;
+    node.muted = true;
+    node.defaultMuted = true;
+    node.setAttribute("muted", "");
+  }, []);
+
+  useEffect(() => {
+    const section = sectionRef.current;
+    if (!section) return undefined;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => setIsInView(entry.isIntersecting),
+      { threshold: 0.15 }
+    );
+
+    observer.observe(section);
+
+    const rect = section.getBoundingClientRect();
+    if (rect.top < window.innerHeight && rect.bottom > 0) {
+      setIsInView(true);
+    }
+
+    return () => observer.disconnect();
   }, []);
 
   useEffect(() => {
     const video = videoRef.current;
-    if (!video) return undefined;
+    if (!video || !isInView) return undefined;
 
-    video.muted = true;
-    video.defaultMuted = true;
+    const nextSrc = managers[activeIndex].video;
+    const onReady = () => attemptPlay();
 
-    const onReady = () => playCurrentVideo();
     video.addEventListener("loadeddata", onReady);
     video.addEventListener("canplay", onReady);
-    video.load();
-    playCurrentVideo();
+
+    if (video.dataset.src !== nextSrc) {
+      video.dataset.src = nextSrc;
+      video.src = nextSrc;
+      video.load();
+    }
+
+    attemptPlay();
 
     return () => {
       video.removeEventListener("loadeddata", onReady);
       video.removeEventListener("canplay", onReady);
     };
-  }, [activeIndex, playCurrentVideo]);
-
-  useEffect(() => {
-    const section = sectionRef.current;
-    const video = videoRef.current;
-    if (!section || !video) return undefined;
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          playCurrentVideo();
-        }
-      },
-      { threshold: 0.35 }
-    );
-
-    observer.observe(section);
-    return () => observer.disconnect();
-  }, [playCurrentVideo]);
+  }, [activeIndex, isInView, attemptPlay]);
 
   useEffect(() => () => clearTimeout(fadeTimer.current), []);
 
@@ -773,9 +789,13 @@ function ManagersShowcase() {
     switchTo((activeIndex + 1) % managers.length);
   }, [activeIndex, switchTo]);
 
+  const handleVideoReady = useCallback(() => {
+    attemptPlay();
+  }, [attemptPlay]);
+
   return (
-    <section id="managers" ref={sectionRef} className="managers-showcase" data-reveal="">
-      <div className="managers-intro">
+    <section id="managers" ref={sectionRef} className="managers-showcase">
+      <div className="managers-intro" data-reveal="">
         <p className="mono-label">Managers / People</p>
         <AnimatedText as="h2">Meet the managers</AnimatedText>
         <p>The students who keep FreeSound's gear, space, and shows moving — captured in rotating glory.</p>
@@ -784,14 +804,16 @@ function ManagersShowcase() {
       <div className="managers-stage">
         <div className={`managers-video-frame ${fading ? "is-fading" : ""}`}>
           <video
-            ref={videoRef}
-            key={activeIndex}
-            src={managers[activeIndex].video}
+            ref={bindVideoRef}
             autoPlay
             muted
             playsInline
             preload="auto"
+            controls={false}
             disablePictureInPicture
+            disableRemotePlayback
+            onLoadedMetadata={handleVideoReady}
+            onCanPlay={handleVideoReady}
             onEnded={handleEnded}
           />
         </div>
