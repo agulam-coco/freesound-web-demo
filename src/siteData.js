@@ -181,5 +181,7 @@ export const managers = [
   { name: "Jason", video: "/assets/manager-1.mp4" },
   { name: "Bea", video: "/assets/manager-2.mp4" },
   { name: "Keely", video: "/assets/manager-3.mp4" },
-  { name: "Bruna", video: "/assets/manager-4.mp4" }
+  { name: "Bruna", video: "/assets/manager-4.mp4" },
+  { name: "Miles", video: "/assets/manager-5.mp4" },
+  { name: "Fui", video: "/assets/manager-6.mp4" }
 ];
