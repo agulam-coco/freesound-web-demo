@@ -325,7 +325,7 @@ function App() {
 }
 
 function resolveRoute(path) {
-  if (path === "/") return { title: "Home", render: (navigate) => <HomePage navigate={navigate} /> };
+  if (path === "/") return { title: "FreeSound Grinnell | Where Student Music Lives", render: (navigate) => <HomePage navigate={navigate} /> };
   if (path === "/about") return { title: "About", render: (navigate) => <AboutPage navigate={navigate} /> };
   if (path === "/projects") {
     return { title: "Events", render: (navigate) => <ProjectsPage navigate={navigate} /> };
