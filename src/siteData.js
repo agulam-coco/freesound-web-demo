@@ -1,6 +1,6 @@
 export const site = {
   name: "FreeSound",
-  tagline: "student music / grinnell college",
+  tagline: "grinnell college",
   email: "freesound@grinnell.edu",
   emailLabel: "freesound@grinnell.edu",
   footerNote: "(c) 2026 FreeSound. Student-run music community at Grinnell College."

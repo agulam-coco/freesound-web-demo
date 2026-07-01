@@ -466,7 +466,7 @@ function ProjectsSection({ navigate, preview = false }) {
   return (
     <section id="events" className="section projects-section">
       <SectionIntro
-        kicker="Events / Resources"
+        kicker="Events | Resources"
         title="What we keep alive"
         copy="FreeSound is part venue crew, part rehearsal home, part archive, and part invitation for students to find each other through music."
       />
@@ -531,7 +531,7 @@ function ServicesSection() {
   return (
     <section id="services" className="section services-section">
       <SectionIntro
-        kicker="How it works"
+        kicker=""
         title="Access, gear, shows"
         copy="FreeSound helps students learn the tools, use the space respectfully, and build events that make campus feel alive."
       />
@@ -804,9 +804,8 @@ function ManagersShowcase() {
   return (
     <section id="managers" ref={sectionRef} className="managers-showcase">
       <div className="managers-intro" data-reveal="">
-        <p className="mono-label">Managers / People</p>
+        <p className="mono-label">Managers | People</p>
         <AnimatedText as="h2">Meet the managers</AnimatedText>
-        <p>The students who keep FreeSound's gear, space, and shows moving — captured in rotating glory.</p>
       </div>
 
       <div className="managers-stage">
@@ -924,7 +923,7 @@ function ProjectsPage({ navigate }) {
   return (
     <>
       <PageHero
-        kicker="Events / Resources"
+        kicker="Events | Resources"
         title="Events"
         image={projects[0].image}
         copy="Showcases, rehearsal resources, sound support, and public-facing pieces of FreeSound's campus music work."
