@@ -492,7 +492,7 @@ function ProjectCard({ project }) {
     >
       <img src={project.image} alt={project.title} />
       <div className="project-card-copy">
-        <span className="project-category mono-label">{project.category}</span>
+        {/* <span className="project-category mono-label">{project.category}</span> */}
         <AnimatedText as="h3">{project.title}</AnimatedText>
       </div>
     </div>
