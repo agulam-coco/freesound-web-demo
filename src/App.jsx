@@ -1,8 +1,12 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
+  aboutFreesound,
   clients,
+  eventPosters,
+  freesoundHistory,
   images,
   journals,
+  managerProfiles,
   managers,
   projects,
   footerNav,
@@ -407,7 +411,9 @@ function HomePage({ navigate }) {
       <Hero navigate={navigate} />
       <ProjectsSection navigate={navigate} preview />
       <ManagersShowcase />
+      <ManagerProfilesSection />
       <AboutBand />
+      <AboutFreesoundContent />
       <ServicesSection />
       <Footer navigate={navigate} />
     </>
@@ -434,7 +440,7 @@ function Hero({ navigate }) {
     >
       <div className="hero-media" data-parallax="0.045">
         <picture>
-          <source srcSet={images.heroAlt} media="(max-width: 809px)" />
+          <source srcSet={images.hero} media="(max-width: 809px)" />
           <img src={images.hero} alt="FreeSound student band performing" />
         </picture>
       </div>
@@ -486,7 +492,7 @@ function ProjectCard({ project }) {
     >
       <img src={project.image} alt={project.title} />
       <div className="project-card-copy">
-        <p className="mono-label">{project.category}</p>
+        <span className="project-category mono-label">{project.category}</span>
         <AnimatedText as="h3">{project.title}</AnimatedText>
       </div>
     </div>
@@ -527,7 +533,7 @@ function ServicesSection() {
       <SectionIntro
         kicker="How it works"
         title="Access, gear, shows"
-        copy="The public-facing version is simple: FreeSound helps students learn the tools, use the space respectfully, and build events that make campus feel alive."
+        copy="FreeSound helps students learn the tools, use the space respectfully, and build events that make campus feel alive."
       />
 
       <div className="services-layout">
@@ -696,8 +702,10 @@ function AboutPage({ navigate }) {
         copy="FreeSound is a student-run music community at Grinnell College, centered on shared space, shared gear, training, shows, and care for the campus scene."
       />
       <AboutBand />
+      <AboutFreesoundContent />
       <ServicesSection />
       <ManagersShowcase />
+      <ManagerProfilesSection />
       <Footer navigate={navigate} />
     </>
   );
@@ -728,7 +736,7 @@ function ManagersShowcase() {
     video.setAttribute("muted", "");
     const playPromise = video.play();
     if (playPromise !== undefined) {
-      playPromise.catch(() => {});
+      playPromise.catch(() => { });
     }
   }, [isInView]);
 
@@ -838,6 +846,73 @@ function ManagersShowcase() {
               />
             ))}
           </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function ManagerProfilesSection() {
+  return (
+    <section className="manager-profiles">
+      <div className="manager-profiles-inner" data-reveal="">
+        <div className="manager-profiles-header">
+          <div className="manager-profiles-rule" />
+          <h2>Current Freesound Managers</h2>
+        </div>
+        <div className="manager-profiles-grid">
+          {managerProfiles.map((mgr) => (
+            <div className="manager-profile-card" key={mgr.name}>
+              <div className="manager-profile-photo">
+                <img src={mgr.photo} alt={mgr.name} />
+              </div>
+              <h3>{mgr.name} {mgr.classYear}</h3>
+              <p className="manager-profile-bio">{mgr.bio}</p>
+              {mgr.social && <p className="manager-profile-social">{mgr.social}</p>}
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function AboutFreesoundContent() {
+  return (
+    <section className="about-freesound-section">
+      <div className="about-freesound-inner" data-reveal="">
+        <div className="about-freesound-top">
+          <div className="about-freesound-info">
+            <h2>About Freesound</h2>
+            <ul>
+              <li><strong>WHAT:</strong> {aboutFreesound.what}</li>
+              <li><strong>WHY:</strong> {aboutFreesound.why}</li>
+              <li><strong>WHERE:</strong> {aboutFreesound.where}</li>
+              <li><strong>WHEN:</strong> {aboutFreesound.when}</li>
+            </ul>
+          </div>
+          <div className="about-freesound-image">
+            <img src={images.liveBand} alt="Freesound live performance" />
+          </div>
+        </div>
+
+        <div className="about-freesound-divider" />
+
+        <div className="poster-gallery">
+          {eventPosters.map((poster) => (
+            <div className="poster-item" key={poster.alt}>
+              <img src={poster.image} alt={poster.alt} />
+            </div>
+          ))}
+        </div>
+
+        <div className="freesound-history">
+          <h2>{freesoundHistory.title}</h2>
+          <div className="freesound-history-content">
+            <img src={freesoundHistory.image} alt="Freesound history collage" />
+            <p>{freesoundHistory.text}</p>
+          </div>
+          <div className="freesound-history-rule" />
         </div>
       </div>
     </section>
