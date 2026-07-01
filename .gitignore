@@ -39,3 +39,7 @@ coverage/
 
 # Backup media (keep current manager videos in public/assets/)
 public/assets/*-old.mp4
+
+# Built zip package
+build.zip
+
