@@ -736,7 +736,13 @@ function ManagersShowcase() {
     video.setAttribute("muted", "");
     const playPromise = video.play();
     if (playPromise !== undefined) {
-      playPromise.catch(() => { });
+      playPromise.catch((err) => {
+        if (err.name === "AbortError") {
+          window.setTimeout(() => {
+            videoRef.current?.play().catch(() => { });
+          }, 150);
+        }
+      });
     }
   }, [isInView]);
 
@@ -746,6 +752,7 @@ function ManagersShowcase() {
     node.muted = true;
     node.defaultMuted = true;
     node.setAttribute("muted", "");
+    node.setAttribute("webkit-playsinline", ""); //Included for older Safari versions
   }, []);
 
   useEffect(() => {
@@ -779,11 +786,15 @@ function ManagersShowcase() {
 
     if (video.dataset.src !== nextSrc) {
       video.dataset.src = nextSrc;
+      // Safari requires muted to be set BEFORE src changes
+      video.muted = true;
+      video.defaultMuted = true;
+      video.setAttribute("muted", "");
       video.src = nextSrc;
       video.load();
+    } else {
+      attemptPlay();
     }
-
-    attemptPlay();
 
     return () => {
       video.removeEventListener("loadeddata", onReady);
@@ -819,8 +830,6 @@ function ManagersShowcase() {
             controls={false}
             disablePictureInPicture
             disableRemotePlayback
-            onLoadedMetadata={handleVideoReady}
-            onCanPlay={handleVideoReady}
             onEnded={handleEnded}
           />
         </div>
