@@ -714,6 +714,10 @@ function AboutPage({ navigate }) {
 function ManagersShowcase() {
   const [activeIndex, setActiveIndex] = useState(0);
   const [fading, setFading] = useState(false);
+
+  // NEW: State to show controls if iOS blocks autoplay (e.g., Low Power Mode)
+  const [fallbackControls, setFallbackControls] = useState(false);
+
   const isInViewRef = useRef(false);
   const videoRef = useRef(null);
   const sectionRef = useRef(null);
@@ -722,6 +726,7 @@ function ManagersShowcase() {
   const switchTo = useCallback((index) => {
     if (index === activeIndex) return;
     setFading(true);
+    setFallbackControls(false); // Reset controls on swap
     clearTimeout(fadeTimer.current);
     fadeTimer.current = window.setTimeout(() => {
       setActiveIndex(index);
@@ -729,16 +734,19 @@ function ManagersShowcase() {
     }, 180);
   }, [activeIndex]);
 
-  // Uses ref — never stale inside event callbacks
   const tryPlay = useCallback(() => {
     const video = videoRef.current;
     if (!video || !isInViewRef.current) return;
-    video.muted = true;
+
     const p = video.play();
     if (p !== undefined) {
       p.catch((err) => {
         if (err.name === "AbortError") {
           setTimeout(() => videoRef.current?.play().catch(() => { }), 300);
+        } else if (err.name === "NotAllowedError") {
+          // iOS hard-blocks autoplay in Low Power Mode or under strict data constraints.
+          // Enable native controls so the user can tap to play manually.
+          setFallbackControls(true);
         }
       });
     }
@@ -762,7 +770,6 @@ function ManagersShowcase() {
 
     observer.observe(section);
 
-    // Critical: initial check for if section is already visible on mount
     const rect = section.getBoundingClientRect();
     if (rect.top < window.innerHeight && rect.bottom > 0) {
       isInViewRef.current = true;
@@ -771,13 +778,16 @@ function ManagersShowcase() {
     return () => observer.disconnect();
   }, [tryPlay]);
 
-  // When activeIndex changes, the JSX src prop updates but iOS Safari
-  // sometimes needs an explicit load() call to start fetching the new file
+  // NEW: Trigger tryPlay() immediately after load(). 
+  // This breaks the onCanPlay deadlock during Low Power Mode.
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
     video.load();
-  }, [activeIndex]);
+    if (isInViewRef.current) {
+      tryPlay();
+    }
+  }, [activeIndex, tryPlay]);
 
   useEffect(() => () => clearTimeout(fadeTimer.current), []);
 
@@ -785,11 +795,21 @@ function ManagersShowcase() {
     switchTo((activeIndex + 1) % managers.length);
   }, [activeIndex, switchTo]);
 
-  // onCanPlay fires when iOS has buffered enough to play —
-  // this replaces the 600ms blind timeout entirely
   const handleCanPlay = useCallback(() => {
     tryPlay();
   }, [tryPlay]);
+
+  // NEW: Callback ref to forcefully attach iOS-required DOM attributes immediately
+  const bindVideoRef = useCallback((el) => {
+    videoRef.current = el;
+    if (el) {
+      el.defaultMuted = true;
+      el.muted = true;
+      el.setAttribute("muted", "");
+      el.setAttribute("playsinline", "");
+      el.setAttribute("webkit-playsinline", "");
+    }
+  }, []);
 
   return (
     <section id="managers" ref={sectionRef} className="managers-showcase">
@@ -801,16 +821,18 @@ function ManagersShowcase() {
       <div className="managers-stage">
         <div className={`managers-video-frame ${fading ? "is-fading" : ""}`}>
           <video
-            ref={videoRef}
+            ref={bindVideoRef}
             src={managers[activeIndex].video}
             muted
             playsInline
             preload="auto"
-            controls={false}
+            controls={fallbackControls}
             disablePictureInPicture
             disableRemotePlayback
             onCanPlay={handleCanPlay}
             onEnded={handleEnded}
+            style={{ pointerEvents: fallbackControls ? "auto" : "none" }}
+            onPlay={() => setFallbackControls(false)}
           />
         </div>
 
