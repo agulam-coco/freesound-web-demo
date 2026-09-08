@@ -714,81 +714,82 @@ function AboutPage({ navigate }) {
 function ManagersShowcase() {
   const [activeIndex, setActiveIndex] = useState(0);
   const [fading, setFading] = useState(false);
-  const [isInView, setIsInView] = useState(false);
-
+  const isInViewRef = useRef(false);
   const videoRef = useRef(null);
   const sectionRef = useRef(null);
   const fadeTimer = useRef(null);
-  const playTimer = useRef(null);
 
   const switchTo = useCallback((index) => {
     if (index === activeIndex) return;
     setFading(true);
     clearTimeout(fadeTimer.current);
-
-    // 1. Fade out
     fadeTimer.current = window.setTimeout(() => {
-      setActiveIndex(index); // 2. Swap source
-
-      // 3. Fade back in shortly after to hide the loading frame
+      setActiveIndex(index);
       setTimeout(() => setFading(false), 150);
     }, 180);
   }, [activeIndex]);
 
-  // Observe when the section scrolls into view
+  // Uses ref — never stale inside event callbacks
+  const tryPlay = useCallback(() => {
+    const video = videoRef.current;
+    if (!video || !isInViewRef.current) return;
+    video.muted = true;
+    const p = video.play();
+    if (p !== undefined) {
+      p.catch((err) => {
+        if (err.name === "AbortError") {
+          setTimeout(() => videoRef.current?.play().catch(() => { }), 300);
+        }
+      });
+    }
+  }, []);
+
   useEffect(() => {
     const section = sectionRef.current;
     if (!section) return undefined;
 
     const observer = new IntersectionObserver(
       ([entry]) => {
-        // We pause the video when scrolling away to save resources
-        setIsInView(entry.isIntersecting);
+        isInViewRef.current = entry.isIntersecting;
+        if (entry.isIntersecting) {
+          tryPlay();
+        } else {
+          videoRef.current?.pause();
+        }
       },
       { threshold: 0.15 }
     );
 
     observer.observe(section);
-    return () => observer.disconnect();
-  }, []);
 
-  // Controlled Play Logic (The "Wait before playing" fix)
+    // Critical: initial check for if section is already visible on mount
+    const rect = section.getBoundingClientRect();
+    if (rect.top < window.innerHeight && rect.bottom > 0) {
+      isInViewRef.current = true;
+    }
+
+    return () => observer.disconnect();
+  }, [tryPlay]);
+
+  // When activeIndex changes, the JSX src prop updates but iOS Safari
+  // sometimes needs an explicit load() call to start fetching the new file
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
+    video.load();
+  }, [activeIndex]);
 
-    clearTimeout(playTimer.current);
-
-    if (isInView) {
-      // WAIT 250ms before playing. 
-      // This gives Safari's media engine time to buffer the new source 
-      // and guarantees React Strict Mode has finished its double-render.
-      playTimer.current = window.setTimeout(() => {
-        video.muted = true;
-        video.playsInline = true;
-
-        const promise = video.play();
-        if (promise !== undefined) {
-          promise.catch((err) => {
-            if (err.name === "AbortError") {
-              // If StrictMode still somehow interrupted us, try one last time
-              playTimer.current = window.setTimeout(() => {
-                video.play().catch(() => { });
-              }, 200);
-            }
-          });
-        }
-      }, 600);
-    } else {
-      video.pause();
-    }
-
-    return () => clearTimeout(playTimer.current);
-  }, [activeIndex, isInView]);
+  useEffect(() => () => clearTimeout(fadeTimer.current), []);
 
   const handleEnded = useCallback(() => {
     switchTo((activeIndex + 1) % managers.length);
   }, [activeIndex, switchTo]);
+
+  // onCanPlay fires when iOS has buffered enough to play —
+  // this replaces the 600ms blind timeout entirely
+  const handleCanPlay = useCallback(() => {
+    tryPlay();
+  }, [tryPlay]);
 
   return (
     <section id="managers" ref={sectionRef} className="managers-showcase">
@@ -802,13 +803,13 @@ function ManagersShowcase() {
           <video
             ref={videoRef}
             src={managers[activeIndex].video}
-            /* autoPlay removed! We are manually controlling it now */
             muted
             playsInline
             preload="auto"
             controls={false}
             disablePictureInPicture
             disableRemotePlayback
+            onCanPlay={handleCanPlay}
             onEnded={handleEnded}
           />
         </div>
@@ -835,6 +836,7 @@ function ManagersShowcase() {
     </section>
   );
 }
+
 function ManagerProfilesSection() {
   return (
     <section className="manager-profiles">

@@ -1456,6 +1456,7 @@ img {
   transition: opacity 180ms ease;
   width: min(320px, 80vw);
   aspect-ratio: 9 / 16;
+  filter: drop-shadow(0 32px 56px rgba(80, 50, 30, 0.22)) drop-shadow(0 6px 14px rgba(80, 50, 30, 0.14));
 }
 
 .managers-video-frame.is-fading {
@@ -1466,7 +1467,7 @@ img {
   display: block;
   height: auto;
   /* Subtle soft shadow so the figure pops off the background */
-  filter: drop-shadow(0 32px 56px rgba(80, 50, 30, 0.22)) drop-shadow(0 6px 14px rgba(80, 50, 30, 0.14));
+  /* filter: drop-shadow(0 32px 56px rgba(80, 50, 30, 0.22)) drop-shadow(0 6px 14px rgba(80, 50, 30, 0.14)); */
   pointer-events: none;
   width: 100%;
 }
