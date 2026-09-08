@@ -715,102 +715,80 @@ function ManagersShowcase() {
   const [activeIndex, setActiveIndex] = useState(0);
   const [fading, setFading] = useState(false);
   const [isInView, setIsInView] = useState(false);
+
   const videoRef = useRef(null);
   const sectionRef = useRef(null);
   const fadeTimer = useRef(null);
+  const playTimer = useRef(null);
 
   const switchTo = useCallback((index) => {
+    if (index === activeIndex) return;
     setFading(true);
     clearTimeout(fadeTimer.current);
+
+    // 1. Fade out
     fadeTimer.current = window.setTimeout(() => {
-      setActiveIndex(index);
-      setFading(false);
+      setActiveIndex(index); // 2. Swap source
+
+      // 3. Fade back in shortly after to hide the loading frame
+      setTimeout(() => setFading(false), 150);
     }, 180);
-  }, []);
+  }, [activeIndex]);
 
-  const attemptPlay = useCallback(() => {
-    const video = videoRef.current;
-    if (!video || !isInView) return;
-    video.muted = true;
-    video.defaultMuted = true;
-    video.setAttribute("muted", "");
-    const playPromise = video.play();
-    if (playPromise !== undefined) {
-      playPromise.catch((err) => {
-        if (err.name === "AbortError") {
-          window.setTimeout(() => {
-            videoRef.current?.play().catch(() => { });
-          }, 150);
-        }
-      });
-    }
-  }, [isInView]);
-
-  const bindVideoRef = useCallback((node) => {
-    videoRef.current = node;
-    if (!node) return;
-    node.muted = true;
-    node.defaultMuted = true;
-    node.setAttribute("muted", "");
-    node.setAttribute("webkit-playsinline", ""); //Included for older Safari versions
-  }, []);
-
+  // Observe when the section scrolls into view
   useEffect(() => {
     const section = sectionRef.current;
     if (!section) return undefined;
 
     const observer = new IntersectionObserver(
-      ([entry]) => setIsInView(entry.isIntersecting),
+      ([entry]) => {
+        // We pause the video when scrolling away to save resources
+        setIsInView(entry.isIntersecting);
+      },
       { threshold: 0.15 }
     );
 
     observer.observe(section);
-
-    const rect = section.getBoundingClientRect();
-    if (rect.top < window.innerHeight && rect.bottom > 0) {
-      setIsInView(true);
-    }
-
     return () => observer.disconnect();
   }, []);
 
+  // Controlled Play Logic (The "Wait before playing" fix)
   useEffect(() => {
     const video = videoRef.current;
-    if (!video || !isInView) return undefined;
+    if (!video) return;
 
-    const nextSrc = managers[activeIndex].video;
-    const onReady = () => attemptPlay();
+    clearTimeout(playTimer.current);
 
-    video.addEventListener("loadeddata", onReady);
-    video.addEventListener("canplay", onReady);
+    if (isInView) {
+      // WAIT 250ms before playing. 
+      // This gives Safari's media engine time to buffer the new source 
+      // and guarantees React Strict Mode has finished its double-render.
+      playTimer.current = window.setTimeout(() => {
+        video.muted = true;
+        video.playsInline = true;
 
-    if (video.dataset.src !== nextSrc) {
-      video.dataset.src = nextSrc;
-      // Safari requires muted to be set BEFORE src changes
-      video.muted = true;
-      video.defaultMuted = true;
-      video.setAttribute("muted", "");
-      video.src = nextSrc;
-      video.load();
+        const promise = video.play();
+        if (promise !== undefined) {
+          promise.catch((err) => {
+            if (err.name === "AbortError") {
+              // If StrictMode still somehow interrupted us, try one last time
+              playTimer.current = window.setTimeout(() => {
+                video.play().catch(() => { });
+              }, 200);
+            }
+          });
+        }
+      }, 600);
     } else {
-      attemptPlay();
+      video.pause();
     }
 
-    return () => {
-      video.removeEventListener("loadeddata", onReady);
-      video.removeEventListener("canplay", onReady);
-    };
-  }, [activeIndex, isInView, attemptPlay]);
-
-  useEffect(() => () => clearTimeout(fadeTimer.current), []);
+    return () => clearTimeout(playTimer.current);
+  }, [activeIndex, isInView]);
 
   const handleEnded = useCallback(() => {
     switchTo((activeIndex + 1) % managers.length);
   }, [activeIndex, switchTo]);
-
-  const handleVideoReady = useCallback(() => {
-    attemptPlay();
-  }, [attemptPlay]);
 
   return (
     <section id="managers" ref={sectionRef} className="managers-showcase">
@@ -822,8 +800,9 @@ function ManagersShowcase() {
       <div className="managers-stage">
         <div className={`managers-video-frame ${fading ? "is-fading" : ""}`}>
           <video
-            ref={bindVideoRef}
-            autoPlay
+            ref={videoRef}
+            src={managers[activeIndex].video}
+            /* autoPlay removed! We are manually controlling it now */
             muted
             playsInline
             preload="auto"
@@ -835,10 +814,7 @@ function ManagersShowcase() {
         </div>
 
         <div className="managers-meta">
-          <span
-            className="managers-name"
-            style={{ opacity: fading ? 0 : 1 }}
-          >
+          <span className="managers-name" style={{ opacity: fading ? 0 : 1 }}>
             {managers[activeIndex].name}
           </span>
           <div className="managers-dots" role="tablist" aria-label="Manager selector">
@@ -859,7 +835,6 @@ function ManagersShowcase() {
     </section>
   );
 }
-
 function ManagerProfilesSection() {
   return (
     <section className="manager-profiles">
