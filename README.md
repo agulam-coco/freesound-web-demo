@@ -1,25 +1,31 @@
-# FreeSound Grinnell Site
+# Freesound
 
-A student-run music community website at Grinnell College.
+The website for Freesound, Grinnell College's student music group. Freesound has been putting on shows and running the practice room in Gardner since 1998.
 
-## Available Scripts
+**Live:** [freesound.us.reclaim.cloud](https://freesound.us.reclaim.cloud/)
+**Write-up:** [jasonchigabatia.com/projects/freesound](https://jasonchigabatia.com/projects/freesound)
 
-In the project directory, you can run:
+![The Freesound site](docs/screenshot.jpg)
 
-### `npm run dev`
-Runs the app in development mode.
-Open [http://127.0.0.1:5173/](http://127.0.0.1:5173/) to view it in the browser.
+## What's on it
 
-### `npm run build`
-Builds the app for production to the `dist` folder.
-It correctly bundles React in production mode and optimizes the build for the best performance.
+- About Freesound and the practice room
+- Posters from past shows
+- The managers, each as a spinning action figure
 
-### `npm run start`
-Builds the app and starts the Express production server.
+## Stack
 
-### `npm run zip`
-Packages the source files into `build.zip`, excluding heavy or local development directories (`node_modules`, `dist`, `.git`). Use this script to prepare the package for uploading to online hosting (like Reclaim Hosting).
+React + Vite on the front end, a small Express server, hosted on Reclaim Cloud.
+
+## Run it
 
 ```bash
-npm run zip
+npm install
+npm run dev
 ```
+
+## What's next
+
+A pipeline where future managers can ask an AI bot to update the site ("add this event", "swap my photo") so it keeps going after I graduate.
+
+Built by [Jason Chigabatia](https://jasonchigabatia.com).
