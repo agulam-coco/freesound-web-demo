@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite --host 127.0.0.1",
-    "build": "vite build",
+    "build": "vite build && node scripts/build-seo.js",
     "preview": "vite preview --host 127.0.0.1",
     "start": "node server.js",
     "zip": "zip -r build.zip . -x \"node_modules/*\" -x \"dist/*\" -x \".git/*\""
@@ -14,7 +14,6 @@
     "node": ">=20.19.0"
   },
   "dependencies": {
-    "@vercel/analytics": "^2.0.1",
     "@vitejs/plugin-react": "^5.0.0",
     "express": "^4.21.0",
     "react": "^19.1.0",

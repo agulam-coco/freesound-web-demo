@@ -1,44 +1,87 @@
-// Production server for Reclaim Cloud (or any Node.js host).
+// Production server (Reclaim Cloud or any Node host).
 //
-// What this does:
-//   1. Serves the static files Vite builds into ./dist
-//   2. Falls back to dist/index.html for any route that isn't a real file,
-//      so client-side routes like /about, /projects/:slug, /journal/:slug,
-//      and /contact-us keep working on a hard refresh or direct link.
-//   3. Listens on 0.0.0.0 (not 127.0.0.1/localhost) so the platform's
-//      reverse proxy can actually reach it, on a single fixed port.
-//
-// On Reclaim Cloud: pick one internal port here (PORT below), then in the
-// dashboard add an Endpoint for your Node.js node pointing at that same
-// port number. Reclaim maps that to a public port/URL for you.
+// SEO-relevant behavior:
+//   - Known pages (src/seo.js) get their own prerendered HTML with a 200.
+//   - Unknown URLs get a real 404 status (the old version returned 200 + the
+//     home page for everything, which Google flags as "soft 404" / duplicate content).
+//   - /about/ and /about.html 301 to /about so each page has exactly one URL.
+//   - Old WordPress URLs 301 to their new equivalents (legacyRedirects in src/seo.js).
+//   - Optional: CANONICAL_REDIRECT=1 makes any other hostname (old domain, the raw
+//     Reclaim URL, www vs non-www) 301 to SITE_URL. Only turn this on once the
+//     canonical domain actually points here.
 
 import express from "express";
 import path from "path";
 import { fileURLToPath } from "url";
+import { SITE_URL, legacyRedirects } from "./src/seo.js";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-const app = express();
-
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const DIST_DIR = path.join(__dirname, "dist");
 const PORT = process.env.PORT || 8080;
 const HOST = "0.0.0.0";
-const DIST_DIR = path.join(__dirname, "dist");
+const CANONICAL_HOST = new URL(SITE_URL).host;
 
-// Serve every built static file (JS/CSS bundles, the public/assets copies
-// like images, the manager .mp4 clips, the logo svg) as-is.
+const app = express();
+app.disable("x-powered-by");
+app.set("trust proxy", true);
+
+// 1. Send every hostname to the one canonical domain (opt-in)
+if (process.env.CANONICAL_REDIRECT === "1") {
+  app.use((req, res, next) => {
+    const host = (req.headers["x-forwarded-host"] || req.headers.host || "").split(",")[0].trim();
+    if (host && host !== CANONICAL_HOST) {
+      return res.redirect(301, `${SITE_URL}${req.originalUrl}`);
+    }
+    next();
+  });
+}
+
+// 2. URL cleanup: one URL per page
+app.use((req, res, next) => {
+  if (req.method !== "GET" && req.method !== "HEAD") return next();
+  const [pathname, query = ""] = req.originalUrl.split("?");
+  const qs = query ? `?${query}` : "";
+
+  if (pathname === "/index.html" || pathname === "/index") return res.redirect(301, `/${qs}`);
+  if (pathname === "/404" || pathname === "/404.html") return next("route");
+
+  // /about.html -> /about
+  if (pathname.endsWith(".html")) return res.redirect(301, `${pathname.slice(0, -5)}${qs}`);
+
+  // /about/ -> /about
+  if (pathname.length > 1 && pathname.endsWith("/")) {
+    return res.redirect(301, `${pathname.replace(/\/+$/, "")}${qs}`);
+  }
+
+  // Old WordPress paths
+  const target = legacyRedirects[pathname.toLowerCase()];
+  if (target) return res.redirect(301, target);
+
+  next();
+});
+
+// 3. Static files. Vite's hashed bundles can be cached forever; everything else for a day.
 app.use(
-    express.static(DIST_DIR, {
-        index: false, // don't auto-serve index.html here; the fallback below handles it
-    })
+  express.static(DIST_DIR, {
+    extensions: ["html"], // /about -> about.html
+    index: "index.html",
+    setHeaders(res, filePath) {
+      if (/-[A-Za-z0-9_-]{8,}\.(js|css)$/.test(filePath)) {
+        res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
+      } else if (filePath.endsWith(".html")) {
+        res.setHeader("Cache-Control", "no-cache");
+      } else {
+        res.setHeader("Cache-Control", "public, max-age=86400");
+      }
+    }
+  })
 );
 
-// SPA fallback: anything else that didn't match a real static file gets
-// index.html, and React's client-side router takes over from there.
-app.get("*", (req, res) => {
-    res.sendFile(path.join(DIST_DIR, "index.html"));
+// 4. Everything else is a real 404 (React still renders the "Page not found" screen)
+app.use((req, res) => {
+  res.status(404).sendFile(path.join(DIST_DIR, "404.html"));
 });
 
 app.listen(PORT, HOST, () => {
-    console.log(`FreeSound server listening on http://${HOST}:${PORT}`);
+  console.log(`FreeSound server listening on http://${HOST}:${PORT}`);
 });

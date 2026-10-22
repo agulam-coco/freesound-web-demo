@@ -1,0 +1,50 @@
+# Only used if the site is served as static files by Apache (Reclaim Hosting / cPanel)
+# instead of server.js. Does the same job as server.js: clean URLs, real 404s.
+# Vite copies this into dist/ on build, so upload dist/ including this hidden file.
+
+Options -MultiViews -Indexes
+DirectoryIndex index.html
+ErrorDocument 404 /404.html
+
+RewriteEngine On
+
+# Send the old domain / www / raw hosting URL to the real domain.
+# Uncomment and set once the canonical domain is pointing here.
+# RewriteCond %{HTTP_HOST} !^freesound\.us\.reclaim\.cloud$ [NC]
+# RewriteRule ^(.*)$ https://freesound.us.reclaim.cloud/$1 [R=301,L]
+
+# Force HTTPS
+RewriteCond %{HTTPS} off
+RewriteCond %{HTTP:X-Forwarded-Proto} !https
+RewriteRule ^(.*)$ https://%{HTTP_HOST}/$1 [R=301,L]
+
+# Old WordPress URLs -> new pages (add one line per old URL)
+# RewriteRule ^about-us/?$ /about [R=301,L]
+# RewriteRule ^events/?$ /projects [R=301,L]
+
+# /index.html -> /
+RewriteRule ^index\.html$ / [R=301,L]
+
+# /about.html -> /about
+RewriteCond %{THE_REQUEST} \s/([^.?\s]+)\.html[\s?]
+RewriteRule ^ /%1 [R=301,L]
+
+# /about/ -> /about
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.+)/$ /$1 [R=301,L]
+
+# /about -> about.html (internal, URL stays /about)
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME}.html -f
+RewriteRule ^(.+)$ $1.html [L]
+
+# Anything else that isn't a real file falls through to ErrorDocument 404.
+
+<IfModule mod_headers.c>
+  <FilesMatch "-[A-Za-z0-9_-]{8,}\.(js|css)$">
+    Header set Cache-Control "public, max-age=31536000, immutable"
+  </FilesMatch>
+  <FilesMatch "\.html$">
+    Header set Cache-Control "no-cache"
+  </FilesMatch>
+</IfModule>

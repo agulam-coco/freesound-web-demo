@@ -7,15 +7,18 @@ export const site = {
 };
 
 export const routes = [
-  { label: "Home", href: "/" }
+  { label: "Home", href: "/" },
+  { label: "About", href: "/about" },
+  { label: "Events", href: "/projects" },
+  { label: "Get Involved", href: "/contact-us" }
 ];
 
 export const footerNav = [
-  { label: "Home", href: "/#top" },
-  { label: "Events", href: "/#events" },
-  { label: "Managers", href: "/#managers" },
-  { label: "About", href: "/#about" },
-  { label: "Services", href: "/#services" }
+  { label: "Home", href: "/" },
+  { label: "About", href: "/about" },
+  { label: "Events", href: "/projects" },
+  { label: "Managers", href: "/about#managers" },
+  { label: "Get Involved", href: "/contact-us" }
 ];
 
 export const images = {
@@ -82,7 +85,7 @@ export const projects = [
     category: "History",
     image: "/assets/freesound-stage-selfie.jpeg",
     summary:
-      "Since 1999, FreeSound has carried Grinnell's student music memory through shows, bands, compilations, and stories."
+      "Since 1998, FreeSound has carried Grinnell's student music memory through shows, bands, compilations, and stories."
   }
 ];
 
@@ -119,8 +122,8 @@ export const services = [
 
 export const journals = [
   {
-    slug: "freesound-since-1999",
-    title: "FreeSound Since 1999",
+    slug: "freesound-since-1998",
+    title: "FreeSound Since 1998",
     category: "History",
     image: "/assets/freesound-logo.svg",
     excerpt:
@@ -178,7 +181,6 @@ export const socials = [
   { label: "Instagram", href: "https://www.instagram.com/freesoundofficial/" },
   { label: "Bandcamp", href: "https://freesoun.bandcamp.com/releases" },
   { label: "Blogspot", href: "http://freethesound.blogspot.com/" },
-  { label: "Myspace", href: "https://myspace.com/wefreesound" },
   { label: "Grinnell", href: "https://www.grinnell.edu/" }
 ];
 
@@ -257,3 +259,4 @@ export const eventPosters = [
   { image: "/assets/posters/662926945_18096561134103787_8675850655019790827_n.jpg", alt: "Freesound x Weekend Battle of the Bands Poster" },
   { image: "/assets/posters/494304592_18062803067103787_739357092698653467_n.jpg", alt: "Grinnellian 2025 Poster" }
 ];
+

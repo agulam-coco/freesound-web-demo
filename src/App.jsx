@@ -15,6 +15,7 @@ import {
   site,
   socials
 } from "./siteData.js";
+import { pages as seoPages, SITE_URL } from "./seo.js";
 
 function cleanPath(pathname = window.location.pathname) {
   const path = pathname.replace(/\/+$/, "");
@@ -314,8 +315,15 @@ function App() {
   useMotionSystem(path);
 
   useEffect(() => {
-    document.title = `${route.title} - ${site.name}`;
-  }, [route.title]);
+    const page = seoPages.find((p) => p.path === path);
+    document.title = page ? page.title : `${route.title} | FreeSound Grinnell`;
+    if (page) {
+      document.querySelector('meta[name="description"]')?.setAttribute("content", page.description);
+      document
+        .querySelector('link[rel="canonical"]')
+        ?.setAttribute("href", page.path === "/" ? `${SITE_URL}/` : `${SITE_URL}${page.path}`);
+    }
+  }, [path, route.title]);
 
   return (
     <Shell path={path} navigate={navigate}>
@@ -410,11 +418,8 @@ function HomePage({ navigate }) {
     <>
       <Hero navigate={navigate} />
       <ProjectsSection navigate={navigate} preview />
-      <ManagersShowcase />
-      <ManagerProfilesSection />
-      <AboutBand />
-      <AboutFreesoundContent />
-      <ServicesSection />
+      <AboutBand navigate={navigate} preview />
+      <ContactCta navigate={navigate} />
       <Footer navigate={navigate} />
     </>
   );
@@ -439,10 +444,12 @@ function Hero({ navigate }) {
       onPointerLeave={() => setPointer({ x: 0, y: 0 })}
     >
       <div className="hero-media" data-parallax="0.045">
-        <picture>
-          <source srcSet={images.hero} media="(max-width: 809px)" />
-          <img src={images.hero} alt="FreeSound student band performing" />
-        </picture>
+        <img
+          src={images.hero}
+          alt="Student band performing on stage at a FreeSound show at Grinnell College"
+          fetchpriority="high"
+          decoding="async"
+        />
       </div>
       <div className="hero-content">
         <div>
@@ -475,6 +482,13 @@ function ProjectsSection({ navigate, preview = false }) {
           <ProjectCard key={project.slug} project={project} />
         ))}
       </div>
+      {preview ? (
+        <div className="section-action">
+          <SmartLink href="/projects" navigate={navigate} className="text-link">
+            See all FreeSound events
+          </SmartLink>
+        </div>
+      ) : null}
     </section>
   );
 }
@@ -490,7 +504,7 @@ function ProjectCard({ project }) {
       onPointerMove={tilt.onPointerMove}
       onPointerLeave={tilt.onPointerLeave}
     >
-      <img src={project.image} alt={project.title} />
+      <img loading="lazy" decoding="async" src={project.image} alt={project.title} />
       <div className="project-card-copy">
         {/* <span className="project-category mono-label">{project.category}</span> */}
         <AnimatedText as="h3">{project.title}</AnimatedText>
@@ -499,11 +513,11 @@ function ProjectCard({ project }) {
   );
 }
 
-function AboutBand() {
+function AboutBand({ navigate, preview = false }) {
   return (
     <section id="about" className="about-band" data-reveal="">
       <div className="about-band-media" data-parallax="0.035">
-        <img src={images.about} alt="FreeSound crowd" />
+        <img loading="lazy" decoding="async" src={images.about} alt="Crowd at a FreeSound student show at Grinnell College" />
       </div>
       <div className="about-band-panel" data-reveal="">
         <p className="mono-label">about freesound</p>
@@ -513,6 +527,11 @@ function AboutBand() {
           gear, helping events sound better, and making space for bands, solo sets, and odd
           experiments to begin.
         </p>
+        {preview ? (
+          <SmartLink href="/about" navigate={navigate} className="round-action light">
+            Meet the managers and our history
+          </SmartLink>
+        ) : null}
       </div>
       <div className="client-strip" aria-label="Client names">
         <div className="client-track">
@@ -538,7 +557,7 @@ function ServicesSection() {
 
       <div className="services-layout">
         <div className="service-image">
-          <img key={active.name} src={active.image} alt={active.name} data-parallax="0.025" />
+          <img loading="lazy" decoding="async" key={active.name} src={active.image} alt={active.name} data-parallax="0.025" />
         </div>
         <div className="service-list" role="tablist" aria-label="Services">
           {services.map((service) => (
@@ -562,7 +581,7 @@ function ServicesSection() {
       </div>
 
       <div className="metrics-row">
-        <Metric value="1999" label="Student music roots at Grinnell" />
+        <Metric value="1998" label="Student music roots at Grinnell" />
         <Metric value="2+" label="Major showcase traditions each year" />
       </div>
     </section>
@@ -618,7 +637,7 @@ function JournalCard({ article, navigate }) {
       onPointerMove={tilt.onPointerMove}
       onPointerLeave={tilt.onPointerLeave}
     >
-      <img src={article.image} alt={article.title} />
+      <img loading="lazy" decoding="async" src={article.image} alt={article.title} />
       <div>
         <AnimatedText as="h3">{article.title}</AnimatedText>
         <p>{article.category}</p>
@@ -630,7 +649,7 @@ function JournalCard({ article, navigate }) {
 function ContactCta({ navigate }) {
   return (
     <section className="contact-cta" data-reveal="">
-      <img src={images.contact} alt="FreeSound event from the stage" data-parallax="0.03" />
+      <img loading="lazy" decoding="async" src={images.contact} alt="FreeSound event from the stage" data-parallax="0.03" />
       <div data-reveal="">
         <p className="mono-label">Connect</p>
         <AnimatedText as="h2">Start with the sound</AnimatedText>
@@ -697,11 +716,11 @@ function AboutPage({ navigate }) {
     <>
       <PageHero
         kicker="about freesound"
-        title="About"
+        title="About FreeSound"
         image={images.about}
         copy="FreeSound is a student-run music community at Grinnell College, centered on shared space, shared gear, training, shows, and care for the campus scene."
       />
-      <AboutBand />
+      <AboutBand navigate={navigate} />
       <AboutFreesoundContent />
       <ServicesSection />
       <ManagersShowcase />
@@ -825,7 +844,7 @@ function ManagersShowcase() {
             src={managers[activeIndex].video}
             muted
             playsInline
-            preload="auto"
+            preload="metadata"
             controls={fallbackControls}
             disablePictureInPicture
             disableRemotePlayback
@@ -871,7 +890,7 @@ function ManagerProfilesSection() {
           {managerProfiles.map((mgr) => (
             <div className="manager-profile-card" key={mgr.name}>
               <div className="manager-profile-photo">
-                <img src={mgr.photo} alt={mgr.name} />
+                <img loading="lazy" decoding="async" src={mgr.photo} alt={`${mgr.name}, FreeSound manager`} />
               </div>
               <h3>{mgr.name} {mgr.classYear}</h3>
               <p className="manager-profile-bio">{mgr.bio}</p>
@@ -899,7 +918,7 @@ function AboutFreesoundContent() {
             </ul>
           </div>
           <div className="about-freesound-image">
-            <img src={images.liveBand} alt="Freesound live performance" />
+            <img loading="lazy" decoding="async" src={images.liveBand} alt="Live student band at a FreeSound show" />
           </div>
         </div>
 
@@ -908,7 +927,7 @@ function AboutFreesoundContent() {
         <div className="poster-gallery">
           {eventPosters.map((poster) => (
             <div className="poster-item" key={poster.alt}>
-              <img src={poster.image} alt={poster.alt} />
+              <img loading="lazy" decoding="async" src={poster.image} alt={poster.alt} />
             </div>
           ))}
         </div>
@@ -916,7 +935,7 @@ function AboutFreesoundContent() {
         <div className="freesound-history">
           <h2>{freesoundHistory.title}</h2>
           <div className="freesound-history-content">
-            <img src={freesoundHistory.image} alt="Freesound history collage" />
+            <img loading="lazy" decoding="async" src={freesoundHistory.image} alt="Collage of FreeSound history since 1998" />
             <p>{freesoundHistory.text}</p>
           </div>
           <div className="freesound-history-rule" />
@@ -932,7 +951,7 @@ function ProjectsPage({ navigate }) {
     <>
       <PageHero
         kicker="Events | Resources"
-        title="Events"
+        title="FreeSound Events"
         image={projects[0].image}
         copy="Showcases, rehearsal resources, sound support, and public-facing pieces of FreeSound's campus music work."
       />
@@ -1057,14 +1076,8 @@ function ContactPage({ navigate }) {
         <ContactForm />
         <div className="contact-card" data-reveal="">
           <p className="mono-label">What to ask about</p>
-          <a href="/projects/rehearsal-room" onClick={(event) => {
-            event.preventDefault();
-            navigate("/projects/rehearsal-room");
-          }}>Room access</a>
-          <a href="/projects/sound-support" onClick={(event) => {
-            event.preventDefault();
-            navigate("/projects/sound-support");
-          }}>Sound support</a>
+          <SmartLink href="/about#services" navigate={navigate}>Room access</SmartLink>
+          <SmartLink href="/about#services" navigate={navigate}>Sound support</SmartLink>
           <p>
             Current students should use official Grinnell channels to reach the active managers for
             the latest room, training, and event support information.
@@ -1085,7 +1098,19 @@ function ContactForm() {
       data-reveal=""
       onSubmit={(event) => {
         event.preventDefault();
-        setStatus("Thanks. This demo inquiry is ready to connect to the official FreeSound contact flow.");
+        const data = new FormData(event.currentTarget);
+        const name = `${data.get("firstName")} ${data.get("lastName")}`.trim();
+        const body = [
+          `Name: ${name}`,
+          `Email: ${data.get("email")}`,
+          `Group: ${data.get("group") || "-"}`,
+          "",
+          data.get("message") || ""
+        ].join("\n");
+        window.location.href = `mailto:${site.email}?subject=${encodeURIComponent(
+          `FreeSound inquiry from ${name}`
+        )}&body=${encodeURIComponent(body)}`;
+        setStatus("Your email app should open with the message filled in. If it doesn't, email freesound@grinnell.edu directly.");
       }}
     >
       <label>
@@ -1117,7 +1142,7 @@ function ContactForm() {
 function PageHero({ kicker, title, image, copy }) {
   return (
     <section className="page-hero">
-      <img src={image} alt={title} data-parallax="0.035" />
+      <img loading="lazy" decoding="async" src={image} alt={title} data-parallax="0.035" />
       <div data-reveal="">
         <p className="mono-label">{kicker}</p>
         <AnimatedText as="h1">{title}</AnimatedText>
@@ -1146,3 +1171,4 @@ function NotFound({ navigate }) {
 }
 
 export default App;
+
