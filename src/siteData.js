@@ -7,18 +7,15 @@ export const site = {
 };
 
 export const routes = [
-  { label: "Home", href: "/" },
-  { label: "About", href: "/about" },
-  { label: "Events", href: "/projects" },
-  { label: "Get Involved", href: "/contact-us" }
+  { label: "Home", href: "/" }
 ];
 
 export const footerNav = [
-  { label: "Home", href: "/" },
-  { label: "About", href: "/about" },
-  { label: "Events", href: "/projects" },
-  { label: "Managers", href: "/about#managers" },
-  { label: "Get Involved", href: "/contact-us" }
+  { label: "Home", href: "/#top" },
+  { label: "Events", href: "/#events" },
+  { label: "Managers", href: "/#managers" },
+  { label: "About", href: "/#about" },
+  { label: "Services", href: "/#services" }
 ];
 
 export const images = {
@@ -85,7 +82,7 @@ export const projects = [
     category: "History",
     image: "/assets/freesound-stage-selfie.jpeg",
     summary:
-      "Since 1998, FreeSound has carried Grinnell's student music memory through shows, bands, compilations, and stories."
+      "Since 1999, FreeSound has carried Grinnell's student music memory through shows, bands, compilations, and stories."
   }
 ];
 
@@ -122,8 +119,8 @@ export const services = [
 
 export const journals = [
   {
-    slug: "freesound-since-1998",
-    title: "FreeSound Since 1998",
+    slug: "freesound-since-1999",
+    title: "FreeSound Since 1999",
     category: "History",
     image: "/assets/freesound-logo.svg",
     excerpt:
@@ -181,6 +178,7 @@ export const socials = [
   { label: "Instagram", href: "https://www.instagram.com/freesoundofficial/" },
   { label: "Bandcamp", href: "https://freesoun.bandcamp.com/releases" },
   { label: "Blogspot", href: "http://freethesound.blogspot.com/" },
+  { label: "Myspace", href: "https://myspace.com/wefreesound" },
   { label: "Grinnell", href: "https://www.grinnell.edu/" }
 ];
 

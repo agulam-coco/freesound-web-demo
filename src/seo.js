@@ -7,30 +7,13 @@
 
 export const SITE_URL = "https://freesound.us.reclaim.cloud";
 
+// Single-page site: only the home page is real. Any other URL returns a 404.
 export const pages = [
   {
     path: "/",
     title: "FreeSound Grinnell | Student Music Community at Grinnell College",
     description:
       "FreeSound is Grinnell College's student-run music community: a practice room in Main Hall, shared gear, sound training, and shows like Showvember."
-  },
-  {
-    path: "/about",
-    title: "About FreeSound | Grinnell College Student Music Since 1998",
-    description:
-      "Meet the FreeSound managers, learn the history of Grinnell's student music scene, and find out how to get trained and use the practice room."
-  },
-  {
-    path: "/projects",
-    title: "Events | FreeSound Grinnell",
-    description:
-      "Showvember, The Grinnellian, open jams, and the other shows and resources FreeSound runs for student musicians at Grinnell College."
-  },
-  {
-    path: "/contact-us",
-    title: "Get Involved | FreeSound Grinnell",
-    description:
-      "Want room access, sound training, or help with a show at Grinnell? Here's how to reach the FreeSound managers."
   }
 ];
 
